@@ -1,0 +1,26 @@
+node{
+      def mavenHome = tool name: 'maven3.8.2'
+
+  stage('1.GitClone'){
+       git credentialsId: 'Github-Credentials', url: 'https://github.com/FintechFab/maven-web-app'
+ }
+  stage('2.MavenBuild'){
+       sh '/var/lib/jenkins/tools/hudson.tasks.Maven_MavenInstallation/maven3.8.2/bin/mvn clean package'
+ }
+  stage('3.CodeQuality'){
+       sh '/var/lib/jenkins/tools/hudson.tasks.Maven_MavenInstallation/maven3.8.2/bin/mvn sonar:sonar'
+ }
+
+  stage('4.UploadArtifacts'){
+       sh '/var/lib/jenkins/tools/hudson.tasks.Maven_MavenInstallation/maven3.8.2/bin/mvn deploy'
+ }
+  stage('DeployTomact'){
+  deploy adapters: [tomcat9(credentialsId: 'tomcat_credentials', path: '', url: 'http://3.80.223.92:7000/')], contextPath: null, war: 'target/*.war'
+ }
+  stage('EmailNotification'){
+      emailext body: '''Hello Engineers, 
+this is the Ebay pipelines project
+Take a look, we are good to go.
+Thanks''', subject: 'Build status', to: 'Devops team members'
+ }
+} 
